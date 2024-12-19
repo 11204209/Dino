@@ -9,22 +9,43 @@ BLACK = (0,0,0)
 
 
 img_dino = pygame.image.load("dino.png")
-img_DinoRun2 = |pygame.image.load("dinorun1.png"),pygame.image.load("dinorun2.png")|
+
+img_DinoRun1 = pygame.transform.scale(pygame.image.load("dinorun1.png"),(150, 150))
+img_DinoRun2 = pygame.transform.scale(pygame.image.load("dinorun2.png"),(150, 150))
+
+img_DinoRun2 = [img_DinoRun1,img_DinoRun2]
 img_cactus = pygame.image.load("cactus.png")
 img_dino = pygame.transform.scale(img_dino,(150, 150))
+
+img_dinoduck1 = pygame.transform.scale(pygame.image.load("DinoDuck1.png"),(150, 150))
+img_dinoduck2 = pygame.transform.scale(pygame.image.load("DinoDuck2.png"),(150, 150))
+img_bird= pygame.image.load("Bird1.png")
+img_birdrun= pygame.image.load("Bird1.png"),pygame.image.load("Bird2.png")
+
+img_dinoduck =[img_dinoduck1,img_dinoduck2]
 img_cactus = pygame.transform.scale(img_cactus,(40, 40))
 # 設定角色
 dino_rect = img_dino.get_rect()
 dino_rect.x = 50
 dino_rect.y = 260
 is_jumping = False
-jump =30
+is_ducking =False
+jump =22
 nowjump=jump
 g=1
 cactus_rect = img_cactus.get_rect()
 cactus_rect.x = 1100
 cactus_rect.y =360
 speed =5
+
+bird_rect =  img_bird.get_rect()
+bird_rect.x = 900
+bird_rect.y =240
+speed =5
+
+
+
+
 # 設定分數
 score = 0
 highscore =0#最高紀錄
@@ -33,6 +54,9 @@ font = pygame.font.Font(None,36)
 clock = pygame.time.Clock()
 running = True
 gameover = False
+
+frame = 0
+lastime=0
 while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
@@ -40,15 +64,28 @@ while running:
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and not is_jumping:
                 if event.key == pygame.K_SPACE:
                     is_jumping = True
                 if event.key == pygame.K_r:
                     score =0
                     cactus_rect.x = 1100
                     gameover = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.key==pygame.K_DOWN:
+                    dino_rect.y=270
+                    is_ducking = True
+
+            if event.type == pygame.KEYUP:
+                if is_ducking:
+                    dino_rect.y=240
+                    is_ducking = False
+            if event.type == pygame.MOUSEBUTTONDOWN  :
                 is_jumping = True
+                if gameover:
+                    score = 0
+                    cactus_rect.x = 1100
+                    bird_rect.x = 2000
+                    gameover = False
     if not gameover:
     
         if is_jumping:
@@ -61,9 +98,15 @@ while running:
         cactus_rect.x -= speed
         if cactus_rect.x<0:
             cactus_rect.x=1280
+        if bird_rect.x < 0:
+            bird_rect.x = 2000
 
 
         if dino_rect.colliderect(cactus_rect):
+            if score>highscore:
+                highscore=score
+            gameover =True
+        if dino_rect.colliderect(bird_rect):
             if score>highscore:
                 highscore=score
             gameover =True
@@ -81,9 +124,23 @@ while running:
         if gameover:
             gameover_show = font.render(f"GAME OVER",True,BLACK)
             screen.blit(gameover_show,(550,150))
+
+
+        nowtime = pygame.time.get_ticks()
+        if nowtime - lastime>300:
+            frame = (frame+1)%2 
+            lastime = nowtime
+
+        if is_ducking:
+           
+            screen.blit(img_dinoduck[frame],dino_rect)
+        else:
+            
+            screen.blit(img_DinoRun2[frame],dino_rect)
         # RENDER YOUR GAME HERE
-        screen.blit(img_dino,dino_rect)
+        # screen.blit(img_dino,dino_rect)
         screen.blit(img_cactus,cactus_rect)
+        screen.blit(img_birdrun[frame],bird_rect)
         # flip() the display to put your work on screen
         pygame.display.flip()
 
