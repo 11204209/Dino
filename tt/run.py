@@ -1,5 +1,6 @@
 # Example file showing a basic pygame "game loop"
 import pygame
+import random 
 
 # pygame setup
 pygame.init()
@@ -7,7 +8,8 @@ pygame.init()
 screen = pygame.display.set_mode((1280, 400))
 BLACK = (0,0,0)
 
-
+#載入圖片
+img_track = pygame.image.load("track.png")
 img_dino = pygame.image.load("dino.png")
 
 img_DinoRun1 = pygame.transform.scale(pygame.image.load("dinorun1.png"),(150, 150))
@@ -32,16 +34,17 @@ is_jumping = False
 is_ducking =False
 jump =22
 nowjump=jump
-g=1
+g=0.8
 cactus_rect = img_cactus.get_rect()
 cactus_rect.x = 1100
 cactus_rect.y =360
-speed =5
+initspeed =5
 
 bird_rect =  img_bird.get_rect()
 bird_rect.x = 900
-bird_rect.y =240
-speed =5
+bird_rect.y =200
+initspeed =5
+speed=initspeed
 
 
 
@@ -50,6 +53,13 @@ speed =5
 score = 0
 highscore =0#最高紀錄
 font = pygame.font.Font(None,36)
+
+# 設定等級
+level =0
+speedlist = [5,6,7,8,9]
+#設定等級
+level =0
+
 
 clock = pygame.time.Clock()
 running = True
@@ -70,6 +80,8 @@ while running:
                 if event.key == pygame.K_r:
                     score =0
                     cactus_rect.x = 1100
+                    bird_rect.x = 900
+                    
                     gameover = False
                 if event.key==pygame.K_DOWN:
                     dino_rect.y=270
@@ -87,7 +99,9 @@ while running:
                     bird_rect.x = 2000
                     gameover = False
     if not gameover:
-    
+        
+        
+        
         if is_jumping:
             dino_rect.y -= nowjump
             nowjump -=g
@@ -96,30 +110,43 @@ while running:
                 nowjump=jump
                 is_jumping = False
         cactus_rect.x -= speed
+        bird_rect.x -= speed
         if cactus_rect.x<0:
-            cactus_rect.x=1280
+            cactus_rect.x=random.randrange(1280, 3000)
+            
         if bird_rect.x < 0:
-            bird_rect.x = 2000
+            bird_rect.x = random.randrange(1280, 3000)
+        
 
 
-        if dino_rect.colliderect(cactus_rect):
+        if dino_rect.colliderect(cactus_rect) or dino_rect.colliderect(bird_rect):
             if score>highscore:
                 highscore=score
             gameover =True
-        if dino_rect.colliderect(bird_rect):
-            if score>highscore:
-                highscore=score
-            gameover =True
+            speed=initspeed
+        
+        if score>3000:
+          speed = speedlist[3]
+          level = 3
+        elif score >2000:
+          speed = speedlist[2]
+          level =2
+        elif score >1000:
+          speed = speedlist[1]
+          level = 1
 
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill((255,255,255))
-        
+        screen.blit(img_track,(0,370))# 多加這行
         score_show = font.render(f"Score: {score}",True, BLACK)
         screen.blit(score_show,(10,10))
 
         highscore_show = font.render(f"Hi Score: {highscore}",True, BLACK)
         screen.blit(highscore_show,(10,30))
+
+        level_show = font.render(f"Level: {level}",True, BLACK)
+        screen.blit(level_show,(10,50))
 
         if gameover:
             gameover_show = font.render(f"GAME OVER",True,BLACK)
