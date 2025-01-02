@@ -1,9 +1,9 @@
 # Example file showing a basic pygame "game loop"
 import pygame
 import random 
-
 # pygame setup
 pygame.init()
+
 # 畫布大小
 screen = pygame.display.set_mode((1280, 400))
 BLACK = (0,0,0)
@@ -18,6 +18,7 @@ img_DinoRun2 = pygame.transform.scale(pygame.image.load("dinorun2.png"),(150, 15
 img_DinoRun2 = [img_DinoRun1,img_DinoRun2]
 img_cactus = pygame.image.load("cactus.png")
 img_dino = pygame.transform.scale(img_dino,(150, 150))
+img_cactus = pygame.transform.scale(img_cactus,(70,70))
 
 img_dinoduck1 = pygame.transform.scale(pygame.image.load("DinoDuck1.png"),(150, 150))
 img_dinoduck2 = pygame.transform.scale(pygame.image.load("DinoDuck2.png"),(150, 150))
@@ -25,29 +26,33 @@ img_bird= pygame.image.load("Bird1.png")
 img_birdrun= pygame.image.load("Bird1.png"),pygame.image.load("Bird2.png")
 
 img_dinoduck =[img_dinoduck1,img_dinoduck2]
-img_cactus = pygame.transform.scale(img_cactus,(40, 40))
+
+img_missile = pygame.image.load("missile.png")
+img_missile = pygame.transform.scale(img_missile,(100,50))
 # 設定角色
 dino_rect = img_dino.get_rect()
 dino_rect.x = 50
 dino_rect.y = 260
 is_jumping = False
 is_ducking =False
+attack = False
 jump =22
 nowjump=jump
 g=0.8
 cactus_rect = img_cactus.get_rect()
-cactus_rect.x = 1100
-cactus_rect.y =360
+cactus_rect.x = random.randrange(1280, 3000)
+cactus_rect.y =330
 initspeed =5
 
 bird_rect =  img_bird.get_rect()
-bird_rect.x = 900
+bird_rect.x = random.randrange(1280, 3000)
 bird_rect.y =200
 initspeed =5
 speed=initspeed
 
-
-
+missile_rect = img_missile.get_rect()
+missile_rect.x = dino_rect.x+50
+missile_rect.y = dino_rect.y+50
 
 # 設定分數
 score = 0
@@ -67,6 +72,8 @@ gameover = False
 
 frame = 0
 lastime=0
+
+
 while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
@@ -74,15 +81,20 @@ while running:
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.KEYDOWN and not is_jumping:
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     is_jumping = True
                 if event.key == pygame.K_r:
                     score =0
                     cactus_rect.x = 1100
                     bird_rect.x = 900
-                    
                     gameover = False
+
+                if event.key == pygame.K_v:
+                    attack=True   
+                    missile_rect.y=dino_rect.y+50
+                    missile_rect.x=dino_rect.x+50
+
                 if event.key==pygame.K_DOWN:
                     dino_rect.y=270
                     is_ducking = True
@@ -98,8 +110,7 @@ while running:
                     cactus_rect.x = 1100
                     bird_rect.x = 2000
                     gameover = False
-    if not gameover:
-        
+    if not gameover:     
         
         
         if is_jumping:
@@ -148,11 +159,23 @@ while running:
         level_show = font.render(f"Level: {level}",True, BLACK)
         screen.blit(level_show,(10,50))
 
+        if attack:
+            missile_rect.x +=5
+            screen.blit(img_missile,(missile_rect.x,missile_rect.y))
+            if missile_rect.colliderect(cactus_rect):
+                cactus_rect.x = random.randint(1280, 3000)
+                missile_rect.x=1280
+                attack = False
+            if missile_rect.colliderect(bird_rect):
+                bird_rect.x = random.randint(1280, 3000)
+                missile_rect.x=1280
+                attack = False
+
         if gameover:
             gameover_show = font.render(f"GAME OVER",True,BLACK)
             screen.blit(gameover_show,(550,150))
 
-
+         # 更新跑步動畫
         nowtime = pygame.time.get_ticks()
         if nowtime - lastime>300:
             frame = (frame+1)%2 
